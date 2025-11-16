@@ -1,0 +1,40 @@
+name: Build and Push App to Docker Hub
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Release new version
+        id: release
+        run: |
+          bash ./scripts/git_update.sh -v patch
+
+      - name: Add app version (Optional)
+        run: echo ${{ steps.release.outputs.new-tag }} > version.txt
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image to Docker Hub
+        env:
+          IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_TAG: ${{ steps.release.outputs.new-tag }}
+        run: |
+          echo "Building image: $IMAGE_NAME:$IMAGE_TAG"
+          docker build -t $IMAGE_NAME:$IMAGE_TAG .
+          docker push $IMAGE_NAME:$IMAGE_TAG
