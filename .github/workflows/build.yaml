@@ -32,7 +32,7 @@ jobs:
 
       - name: Build and push Docker image to Docker Hub
         env:
-          IMAGE_NAME: ${{ vars.DOCKERHUB_USERNAME }}/{{ github.repository }}
+          IMAGE_NAME: ${{ vars.DOCKERHUB_USERNAME }}/${{ github.repository }}
           IMAGE_TAG: ${{ steps.release.outputs.new-tag }}
         run: |
           echo "Building image: $IMAGE_NAME:$IMAGE_TAG"
